@@ -100,9 +100,9 @@
 
 <p><img src="/assets/network.png" alt="alt network" /></p>
 
-<p>The structure of <strong>Encoder</strong>, <strong>Decoder</strong> and <strong>Discriminator</strong> are directly borrowed from the pix2pix model, specifically the Unet model, which are detailed in the original <a href="https://arxiv.org/abs/1611.07004">paper’s Appendix section</a></p>
+<p>The structure of <strong>Encoder</strong>, <strong>Decoder</strong> and <strong>Discriminator</strong> are directly borrowed from the pix2pix, specifically the Unet model, which are detailed in the original <a href="https://arxiv.org/abs/1611.07004">paper’s Appendix section</a></p>
 <h3 id="intuition">Intuition</h3>
-<p>Imagine a human designer work on a new typeface, they are definitely not learning the alphabet from scratch! Real world designers go through years of training to understand the structure of the letters/characters and the fundamental principles, before they could design a font on their own. To reflect this, it is important to make the model not only aware of its own style, but other fonts’ styles as well. Thus it is essential to enable to model learn <strong>multiple font styles at the same time</strong>.</p>
+<p>Imagine a human designer work on a new typeface, they are definitely not learning the alphabet from scratch! Real world designers go through years of training to understand the structure of the letters/characters and the fundamental principles, before they could design a font on their own. To reflect this, it is important to make the model not only aware of its own style, but other fonts’ styles as well. Thus it is essential to enable to model to learn <strong>multiple font styles at the same time</strong>.</p>
 
 <p>Modeling multiple styles concurrently has two major benefits:</p>
 
@@ -114,10 +114,10 @@
 <p>By training multiple fonts together, it enforces the model to learn from each one of them then use the learned <strong>experience</strong> to improve the rest of the crowd.</p>
 
 <h3 id="category-embedding-for-one-to-many-modeling">Category Embedding for One-to-Many Modeling</h3>
-<p>Now we have a problem that same character could appear in multiple fonts. Vanilla pix2pix model doesn’t consider such one-to-many relationsh out-of-box. Inspired by the idea from <a href="https://arxiv.org/abs/1611.04558">Google’s zero-shot GNMT paper</a>, the introduction of category embedding solves this problem by concatenating a <strong>non-trainable gaussian noise</strong> to the character embedding for each style, right before it goes to decoder. By doing this, encoder still maps same character into the same vector, the decoder will take both the character and style embedding to decide how to generate the target character.</p>
+<p>Now we have a problem that same character could appear in multiple fonts. Vanilla pix2pix model doesn’t handle such one-to-many relationship out-of-box. Inspired by <a href="https://arxiv.org/abs/1611.04558">Google’s zero-shot GNMT paper</a>, the introduction of category embedding solves this by concatenating a <strong>non-trainable gaussian noise</strong> as style embedding to the character embedding, right before it goes through decoder. By doing this, encoder still maps same character into the same vector, the decoder, on the other hand, will take both the character and style embeddings to generate the target character.</p>
 
-<h3 id="adding-as-many-losses-as-possible">Adding as Many Losses as Possible</h3>
-<p>After introducing category embedding, we already have a GAN that can handle multiple styles at the same time. However, a new problem emerges: the model starting to confuse and mix the styles together, generating characters that don’t look like any of the provided targets. Taken from the <a href="https://arxiv.org/pdf/1610.09585.pdf">AC-GAN model</a>, the <strong>multi-class category loss</strong> is added to supervise the discriminator to punish and penalize such scenarios, by predicting the style of the generated characters, thus preserving the style itself.</p>
+<h3 id="losses-lots-of-losses">Losses, Lots of Losses</h3>
+<p>With category embedding, we now have a GAN that can handle multiple styles at the same time. However, a new problem emerges: the model starts to confuse and mix the styles together, generating characters that don’t look like any of the provided targets. Stolen from the <a href="https://arxiv.org/pdf/1610.09585.pdf">AC-GAN model</a>, the <strong>multi-class category loss</strong> is added to supervise the discriminator to penalize such scenarios, by predicting the style of the generated characters, thus preserving the style itself.</p>
 
 <p>Another important piece of the model is the <strong>constant loss</strong> borrowed from <a href="https://arxiv.org/abs/1611.02200">DTN network</a>. It follows a simple idea: the source and generated character should resemble the same character, thus they must appear close to each other in the embedded space as well. The introduction of this loss <strong>GREATLY, GREATLY</strong> improves the convergence speed, by enforcing the encoder to preserve the identity of generated character, narrowing down the possible search space.</p>
 
@@ -127,7 +127,7 @@
 <p>GAN is truly a beast to deal with. <strike>Only recommendation is to watch the losses goes up and down, then praise the SUN!</strike></p>
 
 <h3 id="two-step-training">Two-Step Training</h3>
-<p>One strategy I adopt is to split training into a two-step processes. First, train a big model with many fonts, then <strong>freeze the encoder</strong>. After that, we can choose to <strong>fine-tune</strong> the interesting individuals. This way, we have an encoder that trained to the extract abstract character structural information with tens of thousands characters, and a dedicated decoder to flesh out the target. This can be also viewed as a way of transfer learning using weight sharing.</p>
+<p>One strategy I adopt is to split training into a two-step processes. First, train a big model with many fonts, then <strong>freeze the encoder</strong>. After that, we can choose to <strong>fine-tune</strong> the interesting individual fonts. This way, we have an encoder that trained to the extract abstract character structural information with tens of thousands characters, and a dedicated decoder to flesh out the target. This can be also viewed as a way of transfer learning using weight sharing.</p>
 
 <h3 id="experiment-details">Experiment Details</h3>
 
@@ -138,11 +138,11 @@
 <p>The fine-tune process, however, varies case by case, depending on difficulty and performance, usually with possibly higher L1 and const losses, e.g you can try L1_penalty=500, Lconst_penalty=1000.</p>
 
 <h3 id="notes">Notes</h3>
-<p>One seemingly trivial but fairly important thing to check before training, is to verify your data, for things like whether certain characters go missing, or whether the overall shape stay consistent between source and target fonts, since certain font might choose older or rarer ways of writing of some characters. Failure to do so would confuse the model and lead to mode collapse.</p>
+<p>One seemingly trivial but fairly important thing to do before training, is to verify your data, for things like whether certain characters go missing, or whether the overall shape stay consistent between source and target fonts, since certain font might choose older or rarer ways of writing of some characters. Failure to do so would confuse the model and lead to mode collapse.</p>
 
 <h2 id="have-fun-with-the-model">Have Fun With the Model</h2>
 <h3 id="compare-with-ground-truth">Compare with Ground Truth</h3>
-<p>The comparison with ground truth character is shown below, with left being the original character and right as the inferred character:</p>
+<p>The comparison with ground truth is shown below, with left being the original character and right as the inferred character:</p>
 
 <div style="text-align:center">
 <img src="/assets/compare3.png" alt="compare" style="width:600px;" />
@@ -151,7 +151,7 @@
 <p>The result is pretty exciting. Compare with Rewrite, for many characters, the inferred shape is almost identical to its ground truth. Another pretty noticeable improvement is, the zi2zi model can handle much more stylized and complex font than Rewrite, having not shown bias towards certain families of fonts.</p>
 
 <h3 id="discover-the-embedded-space">Discover the Embedded Space</h3>
-<p>One perk we get from having continuous embeddings is that we can interpolate between different styles:</p>
+<p>One perk we get from having continuous embeddings is that we can interpolate between different styles, and witness the states in between:</p>
 
 <p><img src="/assets/transition.png" alt="alt transition" /></p>
 
@@ -160,7 +160,7 @@
   <img src="/assets/poem.gif" alt="animation" />
 </p>
 <h3 id="from-漢字hanzi-to-한글hangul">From 漢字(HanZi) to 한글(Hangul)</h3>
-<p>Chinese characters, no matter simplified or traditional or Japanese Kanji, are all constructed under common principles dating back to thousand years ago. How will this model respond to something it never saw, like an alphabet from another language?</p>
+<p>Chinese characters, no matter simplified or traditional or Japanese Kanji, are all constructed under common principles and a shared set of radicals. Would it be possible that this model just remember the radical shape and recombine them, and fails to generalize beyond that?</p>
 
 <p>This makes Hangul(한글, 諺文), the Korean Alphabet, the perfect target for this question. Hangul, though having similar box-like structure as Chinese characters, is essentially its own system, with radicals that cannot be found in Chinese characters. It is an interesting challenge to test the model’s generalization capability beyond realm of Chinese characters:</p>
 
