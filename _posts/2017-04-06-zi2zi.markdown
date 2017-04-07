@@ -7,20 +7,20 @@ date:   2017-04-06 00:54:16 -0700
 <img src="/assets/cover.png" alt="fail" style="width:100%;"/>
 </div>
 
-Generated samples. Related code can be found **[here](https://github.com/kaonashi-tyc/char2char)**
+Generated samples. Related code can be found **[here](https://github.com/kaonashi-tyc/zi2zi)**
 ## Motivation
 **zi2zi** is the follow-up work for my last [project](https://github.com/kaonashi-tyc/Rewrite), once again tackling the same problem of style transfer between Chinese fonts. 
 
 It is a pleasant surprise that the Rewrite project gets a fair amount of attention and interests, however, looking back, the result feels underwhelming. As an experimental attempt it does fulfill its purpose, but some big issues remain: 
 
-* The generated images are often time blurry
+* The generated images are oftentimes blurry
 * The model fails under more stylized fonts
-* Limit to only one style at a time
+* Model is limited to output only one target font style at a time
 
-That is how zi2zi comes to being, another attempt to solve the above problems in one blow, blessed with the mighty power of [GAN](https://arxiv.org/abs/1406.2661). Personally, it also serves as a playground for me to tap into the wonderland of GAN and its variants.
+That is how zi2zi comes into being, an attempt to solve the above problems in one blow, this time blessed with the mighty power of [GAN](https://arxiv.org/abs/1406.2661). Personally, it also serves as a playground for me to tap into the wonderland of GAN and its variants.
 
 ## One GAN to Rule Them All
-**TL;DR:** It is a conditional generative adversarial network, combined from 3 awesome papers, plus a little additional spice:
+**TL;DR:** It is a conditional generative adversarial network, combined from 3 awesome papers, with a little additional spice:
 
 * [Image-to-Image Translation with Conditional Adversarial Networks](https://arxiv.org/abs/1611.07004)
 * [Conditional Image Synthesis With Auxiliary Classifier GANs](https://arxiv.org/abs/1610.09585)
@@ -33,7 +33,14 @@ As its name hints, the zi2zi model is directly derived and extended from the pop
 
 The structure of **Encoder**, **Decoder** and **Discriminator** are directly borrowed from the pix2pix model, specifically the Unet model, which are detailed in the original [paper's Appendix section](https://arxiv.org/abs/1611.07004)
 ### Intuition
-One important realization during the conceptualization of this project is the necessity to model **multiple font styles at the same time**. Imagine a human designer work on a new typeface, they are definitely not learning the alphabet from scratch! Real world designers go through years' of training to understand the structure of the letters/characters and the underlying design principles, by studying classic typefaces in history. Thus it is essential to have the model aware of other existing fonts, and benefit from past experience.
+One important realization during the conceptualization of this project is the necessity to model **multiple font styles at the same time**. Imagine a human designer work on a new typeface, they are definitely not learning the alphabet from scratch! Real world designers go through years' of training to understand the structure of the letters/characters and the underlying design principles. 
+
+Modeling multiple styles concurrently has two major benefits:
+
+* The encoder gets exposed to many more characters, not only limited to one target font, but from all the fonts combined.
+* The decoder could also learn different ways of writing the same radicals from other fonts. 
+
+By training multiple fonts together, it enforces the model to learn from each one of them then use the learned **experience** to improve the rest of the crowd.
 
 ### Adding Category Embedding for One-to-Many Modeling
 The original pix2pix model doesn't handle one-to-many relation out-of-box, such as in our case, same character could appear in multiple fonts. The introduction of category embedding solves this problem by concatenating a **non-trainable gaussian noise** to the character embedding for each style, an idea stolen from [Google's zero-shot GNMT paper](https://arxiv.org/abs/1611.04558). Also by doing this, encoder can be shared among different fonts, and used in the **fine-tuning** process, which we are going to talk about later. 
@@ -114,4 +121,6 @@ Code derived and rehashed from:
 * [ac-gan](https://github.com/buriburisuri/ac-gan) by [buriburisuri](https://github.com/buriburisuri)
 * [dc-gan](https://github.com/carpedm20/DCGAN-tensorflow) by [carpedm20](https://github.com/carpedm20)
 * [origianl pix2pix torch code](https://github.com/phillipi/pix2pix) by [phillipi](https://github.com/phillipi)
+
+
 

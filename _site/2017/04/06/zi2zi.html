@@ -68,22 +68,22 @@
 <img src="/assets/cover.png" alt="fail" style="width:100%;" />
 </div>
 
-<p>Generated samples. Related code can be found <strong><a href="https://github.com/kaonashi-tyc/char2char">here</a></strong></p>
+<p>Generated samples. Related code can be found <strong><a href="https://github.com/kaonashi-tyc/zi2zi">here</a></strong></p>
 <h2 id="motivation">Motivation</h2>
 <p><strong>zi2zi</strong> is the follow-up work for my last <a href="https://github.com/kaonashi-tyc/Rewrite">project</a>, once again tackling the same problem of style transfer between Chinese fonts.</p>
 
 <p>It is a pleasant surprise that the Rewrite project gets a fair amount of attention and interests, however, looking back, the result feels underwhelming. As an experimental attempt it does fulfill its purpose, but some big issues remain:</p>
 
 <ul>
-  <li>The generated images are often time blurry</li>
+  <li>The generated images are oftentimes blurry</li>
   <li>The model fails under more stylized fonts</li>
-  <li>Limit to only one style at a time</li>
+  <li>Model is limited to output only one target font style at a time</li>
 </ul>
 
-<p>That is how zi2zi comes to being, another attempt to solve the above problems in one blow, blessed with the mighty power of <a href="https://arxiv.org/abs/1406.2661">GAN</a>. Personally, it also serves as a playground for me to tap into the wonderland of GAN and its variants.</p>
+<p>That is how zi2zi comes into being, an attempt to solve the above problems in one blow, this time blessed with the mighty power of <a href="https://arxiv.org/abs/1406.2661">GAN</a>. Personally, it also serves as a playground for me to tap into the wonderland of GAN and its variants.</p>
 
 <h2 id="one-gan-to-rule-them-all">One GAN to Rule Them All</h2>
-<p><strong>TL;DR:</strong> It is a conditional generative adversarial network, combined from 3 awesome papers, plus a little additional spice:</p>
+<p><strong>TL;DR:</strong> It is a conditional generative adversarial network, combined from 3 awesome papers, with a little additional spice:</p>
 
 <ul>
   <li><a href="https://arxiv.org/abs/1611.07004">Image-to-Image Translation with Conditional Adversarial Networks</a></li>
@@ -97,7 +97,16 @@
 
 <p>The structure of <strong>Encoder</strong>, <strong>Decoder</strong> and <strong>Discriminator</strong> are directly borrowed from the pix2pix model, specifically the Unet model, which are detailed in the original <a href="https://arxiv.org/abs/1611.07004">paper’s Appendix section</a></p>
 <h3 id="intuition">Intuition</h3>
-<p>One important realization during the conceptualization of this project is the necessity to model <strong>multiple font styles at the same time</strong>. Imagine a human designer work on a new typeface, they are definitely not learning the alphabet from scratch! Real world designers go through years’ of training to understand the structure of the letters/characters and the underlying design principles, by studying classic typefaces in history. Thus it is essential to have the model aware of other existing fonts, and benefit from past experience.</p>
+<p>One important realization during the conceptualization of this project is the necessity to model <strong>multiple font styles at the same time</strong>. Imagine a human designer work on a new typeface, they are definitely not learning the alphabet from scratch! Real world designers go through years’ of training to understand the structure of the letters/characters and the underlying design principles.</p>
+
+<p>Modeling multiple styles concurrently has two major benefits:</p>
+
+<ul>
+  <li>The encoder gets exposed to many more characters, not only limited to one target font, but from all the fonts combined.</li>
+  <li>The decoder could also learn different ways of writing the same radicals from other fonts.</li>
+</ul>
+
+<p>By training multiple fonts together, it enforces the model to learn from each one of them then use the learned <strong>experience</strong> to improve the rest of the crowd.</p>
 
 <h3 id="adding-category-embedding-for-one-to-many-modeling">Adding Category Embedding for One-to-Many Modeling</h3>
 <p>The original pix2pix model doesn’t handle one-to-many relation out-of-box, such as in our case, same character could appear in multiple fonts. The introduction of category embedding solves this problem by concatenating a <strong>non-trainable gaussian noise</strong> to the character embedding for each style, an idea stolen from <a href="https://arxiv.org/abs/1611.04558">Google’s zero-shot GNMT paper</a>. Also by doing this, encoder can be shared among different fonts, and used in the <strong>fine-tuning</strong> process, which we are going to talk about later.</p>
