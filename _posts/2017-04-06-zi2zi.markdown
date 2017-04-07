@@ -17,7 +17,7 @@ It is a pleasant surprise that the Rewrite project gets a fair amount of attenti
 * Fails under more stylized fonts
 * Limited to learn and output only one target font style at a time
 
-That is how zi2zi comes into being, an attempt to solve the above problems in one blow, this time blessed with the mighty power of [GAN](https://arxiv.org/abs/1406.2661). On a more person note, it also serves as a playground for me to tap into the wonderland of GAN and its variants.
+That is how zi2zi comes into being, an attempt to solve the above problems in one blow, this time blessed with the mighty power of [GAN](https://arxiv.org/abs/1406.2661). On a more personal note, it also serves as a playground for me to tap into the wonderland of GAN and its variants.
 
 ## One GAN to Rule Them All
 **TL;DR:** It is a conditional generative adversarial network, combined from 3 awesome papers, with a little additional spice:
