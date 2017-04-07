@@ -4,11 +4,16 @@ title:  "zi2zi: Master Chinese Calligraphy with Conditional Adversarial Networks
 date:   2017-04-06 00:54:16 -0700
 ---
 <div style="text-align:center">
-<img src="/assets/cover.png" alt="fail" style="width:100%;"/>
+<img src="/assets/cover.png" alt="cover" style="width:100%;"/>
 </div>
 
 Generated samples. Related code can be found **[here](https://github.com/kaonashi-tyc/zi2zi)**
 ## Motivation
+
+<p align="center">
+  <img src="/assets/intro.gif" alt="animation"/>
+</p>
+
 **zi2zi** is the follow-up work for my last [project](https://github.com/kaonashi-tyc/Rewrite), once again tackling the same problem of style transfer between Chinese fonts. 
 
 It is a pleasant surprise that the Rewrite project gets a fair amount of attention and interests, however, looking back, the result feels underwhelming. As an experimental attempt it does fulfill its purpose, but some big issues remain: 
