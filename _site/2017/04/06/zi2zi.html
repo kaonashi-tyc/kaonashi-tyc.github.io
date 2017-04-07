@@ -76,11 +76,11 @@
 
 <ul>
   <li>The generated images are oftentimes blurry</li>
-  <li>The model fails under more stylized fonts</li>
-  <li>Model is limited to output only one target font style at a time</li>
+  <li>Fails under more stylized fonts</li>
+  <li>Limited to learn and output only one target font style at a time</li>
 </ul>
 
-<p>That is how zi2zi comes into being, an attempt to solve the above problems in one blow, this time blessed with the mighty power of <a href="https://arxiv.org/abs/1406.2661">GAN</a>. Personally, it also serves as a playground for me to tap into the wonderland of GAN and its variants.</p>
+<p>That is how zi2zi comes into being, an attempt to solve the above problems in one blow, this time blessed with the mighty power of <a href="https://arxiv.org/abs/1406.2661">GAN</a>. On a more person note, it also serves as a playground for me to tap into the wonderland of GAN and its variants.</p>
 
 <h2 id="one-gan-to-rule-them-all">One GAN to Rule Them All</h2>
 <p><strong>TL;DR:</strong> It is a conditional generative adversarial network, combined from 3 awesome papers, with a little additional spice:</p>
@@ -97,7 +97,7 @@
 
 <p>The structure of <strong>Encoder</strong>, <strong>Decoder</strong> and <strong>Discriminator</strong> are directly borrowed from the pix2pix model, specifically the Unet model, which are detailed in the original <a href="https://arxiv.org/abs/1611.07004">paper’s Appendix section</a></p>
 <h3 id="intuition">Intuition</h3>
-<p>One important realization during the conceptualization of this project is the necessity to model <strong>multiple font styles at the same time</strong>. Imagine a human designer work on a new typeface, they are definitely not learning the alphabet from scratch! Real world designers go through years’ of training to understand the structure of the letters/characters and the underlying design principles.</p>
+<p>Imagine a human designer work on a new typeface, they are definitely not learning the alphabet from scratch! Real world designers go through years of training to understand the structure of the letters/characters and the fundamental principles, before they could design a font on their own. To reflect this, it is important to make the model not only aware of its own style, but other fonts’ styles as well. Thus it is essential to enable to model learn <strong>multiple font styles at the same time</strong>.</p>
 
 <p>Modeling multiple styles concurrently has two major benefits:</p>
 
@@ -108,13 +108,13 @@
 
 <p>By training multiple fonts together, it enforces the model to learn from each one of them then use the learned <strong>experience</strong> to improve the rest of the crowd.</p>
 
-<h3 id="adding-category-embedding-for-one-to-many-modeling">Adding Category Embedding for One-to-Many Modeling</h3>
-<p>The original pix2pix model doesn’t handle one-to-many relation out-of-box, such as in our case, same character could appear in multiple fonts. The introduction of category embedding solves this problem by concatenating a <strong>non-trainable gaussian noise</strong> to the character embedding for each style, an idea stolen from <a href="https://arxiv.org/abs/1611.04558">Google’s zero-shot GNMT paper</a>. Also by doing this, encoder can be shared among different fonts, and used in the <strong>fine-tuning</strong> process, which we are going to talk about later.</p>
+<h3 id="category-embedding-for-one-to-many-modeling">Category Embedding for One-to-Many Modeling</h3>
+<p>Now we have a problem that same character could appear in multiple fonts. Vanilla pix2pix model doesn’t consider such one-to-many relationsh out-of-box. Inspired by the idea from <a href="https://arxiv.org/abs/1611.04558">Google’s zero-shot GNMT paper</a>, the introduction of category embedding solves this problem by concatenating a <strong>non-trainable gaussian noise</strong> to the character embedding for each style, right before it goes to decoder. By doing this, encoder still maps same character into the same vector, the decoder will take both the character and style embedding to decide how to generate the target character.</p>
 
-<h3 id="the-more-losses-the-better">The More Losses, the Better</h3>
-<p>After introducing category embedding, a new problem emerges: the model starting to confuse and mix multiple font styles together. Inspired from the <a href="https://arxiv.org/pdf/1610.09585.pdf">AC-GAN model</a>, the <strong>multi-class category loss</strong> is added to supervise the discriminator to punish and suppress such cases from happening. Also, the introduction of category loss improves over training stability.</p>
+<h3 id="adding-as-many-losses-as-possible">Adding as Many Losses as Possible</h3>
+<p>After introducing category embedding, we already have a GAN that can handle multiple styles at the same time. However, a new problem emerges: the model starting to confuse and mix the styles together, generating characters that don’t look like any of the provided targets. Taken from the <a href="https://arxiv.org/pdf/1610.09585.pdf">AC-GAN model</a>, the <strong>multi-class category loss</strong> is added to supervise the discriminator to punish and penalize such scenarios, by predicting the style of the generated characters, thus preserving the style itself.</p>
 
-<p>Another important piece of the model is the <strong>constant loss</strong> borrowed from <a href="https://arxiv.org/abs/1611.02200">DTN network</a>. It follows a simple idea: the source and generated character should resemble the same character, thus they must appear close to each other in the embedded space as well. As the with the AC-GAN case, the introduction of this loss <strong>GREATLY, GREATLY</strong> improves the convergence speed, by enforcing the encoder to preserve the identity of generated character, narrowing down the possible search space.</p>
+<p>Another important piece of the model is the <strong>constant loss</strong> borrowed from <a href="https://arxiv.org/abs/1611.02200">DTN network</a>. It follows a simple idea: the source and generated character should resemble the same character, thus they must appear close to each other in the embedded space as well. The introduction of this loss <strong>GREATLY, GREATLY</strong> improves the convergence speed, by enforcing the encoder to preserve the identity of generated character, narrowing down the possible search space.</p>
 
 <p>Finally <strong>total variation loss</strong> is included, but from an empirical point of view, it doesn’t do much visible to improve the quality of generated images. Also for a lot of brush writing fonts, tv loss actually works against our real interests, so here it is left as optional.</p>
 
